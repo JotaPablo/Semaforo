@@ -341,7 +341,6 @@ int main()
 {
     setup();
     
-   
     xTaskCreate(vEstadoSemaforo, "Estado Semaforo Task", configMINIMAL_STACK_SIZE,
         NULL, tskIDLE_PRIORITY, NULL);
     xTaskCreate(vLedRGBTask, "Led RGB Task", configMINIMAL_STACK_SIZE,

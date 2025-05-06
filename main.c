@@ -20,11 +20,10 @@
 
 
 static ssd1306_t ssd; // Estrutura do display OLED
-volatile bool modoNoturno = false;
-volatile bool atualizaDisplay = false; // Flag para 
-volatile int estadoSemaforo = 2; // Estado atual do semáforo (0:verde, 1:amarelo, 2:vermelho)
 
-static volatile uint64_t last_time_button_a = 0;
+volatile bool modoNoturno = false;
+volatile bool atualizaDisplay = false; //  sinaliza quando redesenhar o display 
+volatile int estadoSemaforo = 2; // Estado atual do semáforo (0:verde, 1:amarelo, 2:vermelho)
 
 //Função para haver o delay porém sensível à mudança de modo
 void esperaModo(bool modoEsperado, int tempoTotalMs) {
@@ -35,13 +34,43 @@ void esperaModo(bool modoEsperado, int tempoTotalMs) {
     }
 }
 
+//Altera habilita e desabilita o Modo Noturno
+void vBotaoATask(){
+ 
+    uint64_t last_time = 0;
+    uint64_t current_time;
+
+    while(true){
+
+        current_time = to_ms_since_boot(get_absolute_time());
+
+        // Verifica pressionamento com debounce de 200ms
+        if(!gpio_get(BUTTON_A) && current_time - last_time >= 200){
+
+            printf("Botão A pressionado!\n\n");
+            
+            last_time = current_time;
+            modoNoturno = !modoNoturno; // Altera o modo
+            atualizaDisplay = true;
+
+            if(modoNoturno)
+                printf("Modo Noturno Habilitado\n\n");
+            else{
+                printf("Modo Noturno Desabilitado\n\n");
+                estadoSemaforo = 2;
+            }
+        }
+        vTaskDelay(pdMS_TO_TICKS(50));
+    }
+}
+
 //Alterna os estados do semaforo
-void vEstadoSemaforo(){
+void vEstadoSemaforoTask(){
     while(true){
         if(!modoNoturno){
             estadoSemaforo = (estadoSemaforo + 1)%3;
             atualizaDisplay = true;
-            esperaModo(false, 2000);
+            esperaModo(false, 4000);
         }
         else esperaModo(true, 50);
     }
@@ -228,7 +257,7 @@ void vBuzzerTask() {
                     buzzer_turn_on(FREQ_VERDE);
                     esperaModo(false,1000);
                     buzzer_stop();
-                    esperaModo(false,1000);
+                    esperaModo(false,3000); // aguarda os 3 segundos até mudar de modo
                     break;
 
                 case 1:  // Amarelo
@@ -251,7 +280,6 @@ void vBuzzerTask() {
                     break;
             }
         }
-        buzzer_stop();
     }
 }
 
@@ -266,42 +294,6 @@ static void gpio_button_joystick_handler(uint gpio, uint32_t events){
     ssd1306_send_data(&ssd);
 
     reset_usb_boot(0,0); // Reinicia no modo DFU
-}
-
-static void gpio_button_a_handler(uint gpio, uint32_t events){
-
-    uint32_t current_time = to_ms_since_boot(get_absolute_time());
-    
-    // Debounce: verifica se passaram pelo menos 200ms desde o último acionamento
-    if (current_time - last_time_button_a > 200) {
-        last_time_button_a = current_time;
-
-        printf("Botão A pressionado!\n\n");
-            
-        last_time_button_a = current_time;
-        modoNoturno = !modoNoturno; // Altera o modo
-        atualizaDisplay = true;
-
-        if(modoNoturno)
-            printf("Modo Noturno Habilitado\n\n");
-        else{
-            printf("Modo Noturno Desabilitado\n\n");
-            estadoSemaforo = 2;
-        }
-
-    }
-}
-
-// Tratador central de interrupções de botões
-static void gpio_button_handler(uint gpio, uint32_t events) {
-    switch(gpio) {
-        case BUTTON_A:
-            gpio_button_a_handler(gpio, events);
-            break;
-        case BUTTON_JOYSTICK:
-            gpio_button_joystick_handler(gpio, events);
-            break;
-    }
 }
 
 //Configuração inicial de hardware
@@ -332,16 +324,18 @@ void setup(){
     gpio_set_dir(BUTTON_JOYSTICK, GPIO_IN);
     gpio_pull_up(BUTTON_JOYSTICK);
 
-    gpio_set_irq_enabled_with_callback(BUTTON_JOYSTICK, GPIO_IRQ_EDGE_FALL, true, &gpio_button_handler);
-    gpio_set_irq_enabled_with_callback(BUTTON_A, GPIO_IRQ_EDGE_FALL, true, &gpio_button_handler);
+    gpio_set_irq_enabled_with_callback(BUTTON_JOYSTICK, GPIO_IRQ_EDGE_FALL, true, &gpio_button_joystick_handler);
 
 }
 
 int main()
 {
     setup();
-    
-    xTaskCreate(vEstadoSemaforo, "Estado Semaforo Task", configMINIMAL_STACK_SIZE,
+
+
+    xTaskCreate(vBotaoATask, "Botao A Task", configMINIMAL_STACK_SIZE,
+        NULL, tskIDLE_PRIORITY + 1, NULL);
+    xTaskCreate(vEstadoSemaforoTask, "Estado Semaforo Task", configMINIMAL_STACK_SIZE,
         NULL, tskIDLE_PRIORITY, NULL);
     xTaskCreate(vLedRGBTask, "Led RGB Task", configMINIMAL_STACK_SIZE,
         NULL, tskIDLE_PRIORITY, NULL);
@@ -349,8 +343,8 @@ int main()
         NULL, tskIDLE_PRIORITY, NULL);
     xTaskCreate(vDisplayOledTask, "Display OLED Task", configMINIMAL_STACK_SIZE,
             NULL, tskIDLE_PRIORITY, NULL);
-   // xTaskCreate(vBuzzerTask, "Buzzer Task", configMINIMAL_STACK_SIZE,
-   //     NULL, tskIDLE_PRIORITY, NULL);
+    xTaskCreate(vBuzzerTask, "Buzzer Task", configMINIMAL_STACK_SIZE,
+        NULL, tskIDLE_PRIORITY, NULL);
 
     vTaskStartScheduler();
     panic_unsupported();

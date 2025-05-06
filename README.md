@@ -1,6 +1,6 @@
-# BitSignal - Semáforo Inteligente com Modo Noturno
+# Semáforo Inteligente com Modo Noturno - Utilizando FreeRTOS
 
-Um sistema de semáforo embarcado utilizando a plataforma RP2040 (Raspberry Pi Pico) com suporte a **modo noturno**. O sistema alterna automaticamente os estados do semáforo em tempo real, utilizando tarefas do FreeRTOS, além de exibir a situação em um display OLED, controlar uma matriz de LEDs e um LED RBG. O modo noturno é ativado via **botão** A e altera o comportamento do sistema para piscar o sinal amarelo, simulando o funcionamento de um semáforo real fora de horário de pico.
+Um sistema de semáforo embarcado utilizando a plataforma RP2040 (Raspberry Pi Pico) com FreeRTOS, que alterna automaticamente entre os estados Verde, Amarelo e Vermelho, e conta com um modo noturno de sinalização(Pisca o Amarelo). Além de LEDs RGB discretos, matriz de LEDs e display OLED, o projeto inclui **feedback sonoro via buzzer** para acessibilidade de pessoas com baixa visão. O modo noturno é ativado pelo **botão A**, e o **botão joystick** serve para entrar em modo BOOTSEL.
 
 ## Demonstração em Vídeo
 [![Assista ao vídeo no YouTube](https://img.youtube.com/vi/HY4chSQSjx0/hqdefault.jpg)](https://youtu.be/HY4chSQSjx0)
@@ -43,14 +43,15 @@ Um sistema de semáforo embarcado utilizando a plataforma RP2040 (Raspberry Pi P
 - **`main.c`**  
   – Inicialização de hardware e criação de tarefas FreeRTOS  
 - **Tarefas principais**  
-  - `vEstadoSemaforo()` – alterna ciclos Verde → Amarelo → Vermelho (modo normal) ou apenas pisca Amarelo (modo noturno)  
+  - `vBotaoATask` - altera entre Modo Noturno e Modo Normal
+  - `vEstadoSemaforoTask()` – alterna ciclos Verde → Amarelo → Vermelho (modo normal) ou apenas pisca Amarelo (modo noturno)  
   - `vLedRGBTask()` – acende LEDs RGB discretos conforme estado ou pisca Amarelo no modo noturno  
   - `vMatrizLedTask()` – anima a matriz WS2812B de acordo com o estado  
   - `vDisplayOledTask()` – atualiza o SSD1306 com textos e desenho do semáforo  
   - `vBuzzerTask()` – gera os padrões de beep para cada estado e modo  
 - **Funções auxiliares**  
   - `esperaModo(bool modoEsperado, int ms)` – delay sensível à troca de modo  
-  - Handlers de interrupção de botões (`gpio_button_a_handler`, `gpio_button_joystick_handler`)  
+  - Handlers de interrupção de botões (`gpio_button_joystick_handler`)  
 
 ---
 

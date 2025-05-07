@@ -3,8 +3,8 @@
 #include "pico/stdlib.h"
 
 #include "lib/ssd1306.h"
-#include "neopixel.h"
-#include "buzzer.h"
+#include "lib/neopixel.h"
+#include "lib/buzzer.h"
 
 #include "FreeRTOS.h"
 #include "FreeRTOSConfig.h"

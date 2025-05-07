@@ -3,7 +3,7 @@
 Um sistema de semáforo embarcado utilizando a plataforma RP2040 (Raspberry Pi Pico) com FreeRTOS, que alterna automaticamente entre os estados Verde, Amarelo e Vermelho, e conta com um modo noturno de sinalização(Pisca o Amarelo). Além de LEDs RGB discretos, matriz de LEDs e display OLED, o projeto inclui **feedback sonoro via buzzer** para acessibilidade de pessoas com baixa visão. O modo noturno é ativado pelo **botão A**, e o **botão joystick** serve para entrar em modo BOOTSEL.
 
 ## Demonstração em Vídeo
-[![Assista ao vídeo no YouTube](https://img.youtube.com/vi/HY4chSQSjx0/hqdefault.jpg)](https://youtu.be/HY4chSQSjx0)
+[![Assista ao vídeo no YouTube](https://img.youtube.com/vi/SwuNOln3g1I/hqdefault.jpg)](https://youtu.be/SwuNOln3g1I)
 
 ## Funcionalidades Principais
 

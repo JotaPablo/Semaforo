@@ -332,7 +332,6 @@ int main()
 {
     setup();
 
-
     xTaskCreate(vBotaoATask, "Botao A Task", configMINIMAL_STACK_SIZE,
         NULL, tskIDLE_PRIORITY + 1, NULL);
     xTaskCreate(vEstadoSemaforoTask, "Estado Semaforo Task", configMINIMAL_STACK_SIZE,

@@ -262,13 +262,12 @@ void vBuzzerTask() {
 
                 case 1:  // Amarelo
                 //beep rápido intermitente “atenção”
-                    for (int i = 0; i < 2; i++) {
-                        if (modoNoturno) break;
-                        buzzer_turn_on(FREQ_AMARELO);
-                        esperaModo(false,200);
-                        buzzer_stop();
-                        esperaModo(false,200);
-                    }
+                    
+                    buzzer_turn_on(FREQ_AMARELO);
+                    esperaModo(false,200);
+                    buzzer_stop();
+                    esperaModo(false,200);
+                    
                     break;
 
                 case 2:  // Vermelho
@@ -280,6 +279,7 @@ void vBuzzerTask() {
                     break;
             }
         }
+        buzzer_stop();
     }
 }
 
